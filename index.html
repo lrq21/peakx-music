@@ -1,0 +1,1237 @@
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <title>Peakx Music</title>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #000000;
+      --panel: rgba(26, 26, 26, .75);
+      --panel-strong: rgba(20, 20, 20, .96);
+      --line: rgba(255, 255, 255, .12);
+      --muted: #9295a3;
+      --text: #f7f7fb;
+      --accent: #c4ff54;
+      --accent-ink: #101407;
+      --sidebar-width: 252px;
+      --glass-bg: rgba(255, 255, 255, .05);
+      --glass-border: rgba(255, 255, 255, .1);
+      --glass-shadow: 0 8px 32px rgba(0, 0, 0, .37);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+    }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+    #snow {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 4;
+      opacity: .5;
+    }
+    .app { position: relative; z-index: 1; display: flex; height: 100vh; }
+    .sidebar {
+      width: var(--sidebar-width);
+      flex: 0 0 var(--sidebar-width);
+      display: flex;
+      flex-direction: column;
+      padding: 26px 18px 20px;
+      background: #000000;
+      border-right: 1px solid var(--glass-border);
+      border-radius: 0 22px 22px 0;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; padding: 0 9px 34px; }
+    .brand-logo {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 14px;
+      background: #171a20;
+      border: 1px solid rgba(255, 255, 255, .18);
+      box-shadow: 0 0 28px rgba(196, 255, 84, .08);
+    }
+    .brand-logo img { width: 100%; height: 100%; object-fit: contain; }
+    .brand-name { font-size: 17px; font-weight: 760; letter-spacing: .06em; }
+    .brand-name span { color: var(--accent); }
+    .nav-label {
+      margin: 0 11px 10px;
+      color: #717482;
+      font-size: 10px;
+      font-weight: 750;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    .nav { display: grid; gap: 7px; }
+    .nav-button {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      width: 100%;
+      padding: 12px 13px;
+      border: 1px solid transparent;
+      border-radius: 14px;
+      background: transparent;
+      color: #a9abb6;
+      cursor: pointer;
+      text-align: left;
+      transition: background .18s ease, color .18s ease, border-color .18s ease, transform .2s ease, padding-left .2s ease;
+    }
+    .nav-button:hover, .nav-button.active {
+      border-color: rgba(255, 255, 255, .06);
+      background: rgba(255, 255, 255, .07);
+      color: #fff;
+    }
+    .nav-button:hover { transform: translateX(5px); padding-left: 18px; }
+    .nav-button.active { box-shadow: inset 2px 0 var(--accent); }
+    .nav-icon { display: grid; width: 20px; place-items: center; font-size: 17px; }
+    .side-bottom { margin-top: auto; }
+    .main {
+      min-width: 0;
+      flex: 1;
+      overflow: auto;
+      padding: 0 38px 150px;
+      scrollbar-color: #3b3e48 transparent;
+      scrollbar-width: thin;
+    }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 78px;
+      gap: 20px;
+      background: linear-gradient(var(--bg) 72%, transparent);
+    }
+    .top-title { color: #b8bac4; font-size: 13px; font-weight: 580; }
+    .top-actions { display: flex; align-items: center; gap: 12px; }
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      width: min(290px, 42vw);
+      padding: 10px 13px;
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: var(--muted);
+    }
+    .search-box input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 12px;
+    }
+    .search-box input::placeholder { color: #828591; }
+    .avatar {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: linear-gradient(145deg, #363b44, #1b1e26);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .view { display: none; max-width: 1440px; margin: 0 auto; animation: appear .28s ease both; }
+    .view.active { display: block; }
+    @keyframes appear { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    .hero {
+      position: relative;
+      display: flex;
+      min-height: 245px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 22px;
+      overflow: hidden;
+      padding: 36px 40px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 24px;
+      background:
+        radial-gradient(ellipse at 77% 50%, rgba(196,255,84,.17), transparent 36%),
+        linear-gradient(115deg, rgba(40,43,51,.93), rgba(19,21,28,.76));
+      box-shadow: 0 25px 80px rgba(0,0,0,.2);
+    }
+    .hero::after {
+      position: absolute;
+      top: -80px;
+      right: 8%;
+      width: 280px;
+      height: 280px;
+      border: 1px solid rgba(196,255,84,.13);
+      border-radius: 50%;
+      box-shadow: 0 0 0 35px rgba(196,255,84,.025), 0 0 0 70px rgba(196,255,84,.02);
+      content: "";
+    }
+    .hero-copy { position: relative; z-index: 1; max-width: 580px; }
+    .eyebrow { color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+    .hero h1 { margin: 13px 0 9px; font-size: clamp(30px, 4vw, 48px); letter-spacing: -.045em; line-height: 1.05; }
+    .hero p { max-width: 460px; margin: 0; color: #b0b2bc; font-size: 13px; line-height: 1.65; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .primary-button, .secondary-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 42px;
+      padding: 0 17px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 750;
+      transition: transform .18s ease, background .18s ease;
+    }
+    .primary-button { background: var(--accent); color: var(--accent-ink); }
+    .secondary-button { border-color: var(--line); background: rgba(255,255,255,.07); color: #f4f4f6; }
+    .primary-button:hover, .secondary-button:hover { transform: translateY(-2px); }
+    .hero-mark { position: relative; z-index: 1; display: grid; width: 160px; height: 160px; flex: 0 0 160px; place-items: center; }
+    .hero-disc {
+      display: grid;
+      width: 138px;
+      height: 138px;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.23);
+      border-radius: 50%;
+      background: radial-gradient(circle, #343a32 0 9%, #12140f 10% 27%, #42483d 28% 29%, #191b17 30% 60%, #31352e 61% 63%, #171914 64%);
+      box-shadow: 0 12px 50px rgba(0,0,0,.5), 0 0 30px rgba(196,255,84,.12);
+      animation: spin 12s linear infinite;
+      animation-play-state: paused;
+    }
+    body.is-playing .hero-disc { animation-play-state: running; }
+    .hero-disc span { color: var(--accent); font-size: 28px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .section { margin-top: 34px; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 15px; }
+    .section-head h2 { margin: 0; font-size: 19px; letter-spacing: -.025em; }
+    .section-head p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+    .subtle-action { padding: 6px 0; border: 0; background: none; color: #c6c8d0; cursor: pointer; font-size: 11px; }
+    .subtle-action:hover { color: var(--accent); }
+    .track-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 15px; }
+    .track-card {
+      min-width: 0;
+      padding: 11px;
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: transform .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .track-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.08); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+    .artwork {
+      position: relative;
+      display: grid;
+      aspect-ratio: 1.16;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 12px;
+      background:
+        radial-gradient(circle at 72% 20%, rgba(255,255,255,.22), transparent 27%),
+        linear-gradient(135deg, var(--art-a, #414536), var(--art-b, #151820));
+    }
+    .artwork::before, .artwork::after { position: absolute; border: 1px solid rgba(255,255,255,.14); border-radius: 50%; content: ""; }
+    .artwork::before { width: 73%; aspect-ratio: 1; }
+    .artwork::after { width: 48%; aspect-ratio: 1; }
+    .artwork img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .art-glyph { position: relative; z-index: 1; color: rgba(255,255,255,.9); font-size: 28px; text-shadow: 0 3px 20px rgba(0,0,0,.45); }
+    .card-play {
+      position: absolute;
+      right: 9px;
+      bottom: 9px;
+      z-index: 2;
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border: 0;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #12160b;
+      cursor: pointer;
+      box-shadow: 0 5px 18px rgba(0,0,0,.35);
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .track-card:hover .card-play, .card-play:focus-visible { opacity: 1; transform: translateY(0); }
+    .track-meta { display: flex; align-items: start; justify-content: space-between; gap: 7px; padding: 11px 2px 2px; }
+    .track-text { min-width: 0; }
+    .track-title { overflow: hidden; color: #f2f2f5; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .track-artist { overflow: hidden; margin-top: 5px; color: var(--muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .star-button {
+      flex: 0 0 auto;
+      padding: 2px 3px;
+      border: 0;
+      background: transparent;
+      color: #81838e;
+      cursor: pointer;
+      font-size: 17px;
+      line-height: 1;
+    }
+    .star-button:hover, .star-button.favorited { color: var(--accent); }
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 28px 20px;
+      border: 1px dashed rgba(255,255,255,.15);
+      border-radius: 16px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.65;
+      text-align: center;
+    }
+    .empty-state strong { display: block; margin-bottom: 6px; color: #e5e6eb; font-size: 14px; }
+    .page-heading { margin: 18px 0 22px; }
+    .page-heading h1 { margin: 0 0 8px; font-size: 32px; letter-spacing: -.04em; }
+    .page-heading p { margin: 0; color: var(--muted); font-size: 12px; }
+    .search-large {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 0 24px;
+      padding: 14px 16px;
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #a7a9b3;
+    }
+    .search-large input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: white; font-size: 14px; }
+    .player {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: var(--sidebar-width);
+      z-index: 5;
+      width: calc(100% - var(--sidebar-width));
+      display: grid;
+      grid-template-columns: minmax(190px, 1fr) minmax(280px, 1.6fr);
+      align-items: center;
+      min-height: 92px;
+      gap: 16px;
+      padding: 12px 25px;
+      border-top: 1px solid var(--glass-border);
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 -4px 24px rgba(0,0,0,.4);
+    }
+    .now-playing { display: flex; min-width: 0; align-items: center; gap: 12px; }
+    .mini-art { display: grid; width: 50px; height: 50px; flex: 0 0 50px; place-items: center; overflow: hidden; border-radius: 11px; background: linear-gradient(135deg, #3b4431, #171a20); color: var(--accent); font-size: 18px; }
+    .mini-art img { width: 100%; height: 100%; object-fit: cover; }
+    .now-info { min-width: 0; }
+    .now-title { overflow: hidden; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .now-artist { overflow: hidden; margin-top: 5px; color: var(--muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .player-center { display: grid; gap: 8px; justify-items: center; }
+    .controls { display: flex; align-items: center; gap: 16px; }
+    .volume-control { display: flex; align-items: center; gap: 8px; color: #858894; }
+    .volume-slider { width: 70px; height: 4px; accent-color: var(--accent); cursor: pointer; }
+    .volume-icon { display: grid; width: 20px; height: 20px; place-items: center; }
+    .volume-icon svg { display: none; width: 18px; height: 18px; }
+    .volume-icon svg.active { display: block; }
+    .control-button {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #c4c6ce;
+      cursor: pointer;
+      font-size: 16px;
+      transition: color .15s ease, transform .15s ease;
+    }
+    .control-button:hover { color: white; transform: scale(1.08); }
+    .control-button.main-control { width: 34px; height: 34px; border-radius: 50%; background: white; color: #111; font-size: 14px; }
+    .control-button:disabled { cursor: default; opacity: .38; }
+    .timeline { display: flex; width: 100%; max-width: 500px; align-items: center; gap: 9px; color: #858894; font-size: 9px; font-variant-numeric: tabular-nums; }
+    input[type="range"] { height: 4px; accent-color: var(--accent); cursor: pointer; }
+    #seek { flex: 1; min-width: 40px; }
+    .playback-status { color: var(--accent); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .youtube-panel {
+      width: min(100%, 860px);
+      margin: 0 auto 28px;
+      overflow: hidden;
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      background: #111216;
+      color: var(--text);
+      box-shadow: 0 14px 44px rgba(0,0,0,.4);
+    }
+    .youtube-panel[hidden] { display: none; }
+    .youtube-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 13px 17px; }
+    .youtube-panel-title { min-width: 0; }
+    .youtube-panel-title strong, .youtube-panel-title span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .youtube-panel-title strong { font-size: 13px; }
+    .youtube-panel-title span { margin-top: 4px; color: var(--muted); font-size: 10px; }
+    .youtube-frame-wrap { aspect-ratio: 16 / 9; max-height: min(60vh, 484px); background: #000; }
+    .youtube-frame-wrap iframe, .youtube-frame-wrap #youtubePlayer { display: block; width: 100%; height: 100%; border: 0; }
+    .youtube-panel-footer { padding: 10px 17px 13px; color: var(--muted); font-size: 10px; }
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 112px;
+      z-index: 8;
+      max-width: min(390px, calc(100vw - 32px));
+      padding: 12px 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel-strong);
+      box-shadow: 0 10px 35px rgba(0,0,0,.35);
+      color: #f0f0f3;
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    .toast.visible { opacity: 1; transform: translateY(0); }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 900px) {
+      :root { --sidebar-width: 210px; }
+      .main { padding-right: 24px; padding-left: 24px; }
+      .hero { padding: 30px; }
+      .hero-mark { width: 125px; flex-basis: 125px; }
+      .hero-disc { width: 112px; height: 112px; }
+      .player { grid-template-columns: minmax(145px, 1fr) minmax(230px, 1.4fr); padding-right: 16px; padding-left: 16px; gap: 10px; }
+      .controls { gap: 11px; }
+    }
+    @media (max-width: 650px) {
+      body { overflow: hidden; }
+      .app { flex-direction: column; }
+      .sidebar {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 6;
+        width: 100%;
+        height: 62px;
+        flex: 0 0 62px;
+        flex-direction: row;
+        justify-content: center;
+        padding: 5px 8px;
+        border-top: 1px solid var(--line);
+        border-right: 0;
+        background: #000000;
+        border-radius: 0;
+      }
+      .brand, .nav-label, .side-bottom { display: none; }
+      .nav { width: 100%; grid-template-columns: repeat(3, 1fr); gap: 3px; }
+      .nav-button { flex-direction: column; justify-content: center; gap: 2px; padding: 5px 2px; border-radius: 9px; font-size: 9px; }
+      .nav-button:hover { transform: translateY(-2px); padding-left: 2px; }
+      .nav-button.active { box-shadow: inset 0 2px var(--accent); }
+      .nav-icon { font-size: 17px; }
+      .main { width: 100%; padding: 0 16px 180px; }
+      .topbar { min-height: 64px; }
+      .top-title { font-size: 11px; }
+      .top-actions { gap: 8px; }
+      .search-box { width: min(190px, 52vw); padding: 8px 10px; }
+      .search-box input { font-size: 11px; }
+      .avatar { width: 31px; height: 31px; }
+      .hero { min-height: 260px; padding: 26px 22px; }
+      .hero-mark { position: absolute; right: 8px; bottom: 0; opacity: .32; }
+      .hero h1 { font-size: 34px; }
+      .hero-copy { max-width: 100%; }
+      .section { margin-top: 28px; }
+      .track-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .track-card { padding: 8px; }
+      .artwork { aspect-ratio: 1.08; }
+      .card-play { opacity: 1; transform: none; width: 32px; height: 32px; }
+      .player {
+        left: 0;
+        bottom: 62px;
+        width: 100%;
+        grid-template-columns: 1fr auto;
+        min-height: 106px;
+        gap: 4px 10px;
+        padding: 9px 13px 7px;
+        border-top: 1px solid var(--line);
+      }
+      .now-playing { grid-column: 1; grid-row: 1; }
+      .mini-art { width: 42px; height: 42px; flex-basis: 42px; }
+      .now-title { max-width: 52vw; }
+      .player-center { display: contents; }
+      .controls { grid-column: 2; grid-row: 1; gap: 6px; }
+      .controls .control-button:not(.main-control) { width: 26px; height: 26px; font-size: 14px; }
+      .timeline { grid-column: 1 / -1; grid-row: 2; max-width: none; }
+      .volume-control { grid-column: 1 / -1; grid-row: 3; justify-content: center; }
+      .playback-status { grid-column: 1 / -1; grid-row: 4; text-align: center; }
+        .toast { bottom: 180px; right: 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="snow" aria-hidden="true" width="1095" height="1019"></canvas>
+  <div class="app">
+    <aside class="sidebar" aria-label="Main navigation">
+      <div class="brand">
+        <div class="brand-logo"><img src="./peakx-logo.png" alt=""></div>
+        <div class="brand-name">PEAKX <span>MUSIC</span></div>
+      </div>
+      <p class="nav-label">Menu</p>
+      <nav class="nav">
+        <button class="nav-button" type="button" data-view="home"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></span><span>Home</span></button>
+        <button class="nav-button active" type="button" data-view="search"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></span><span>Search</span></button>
+        <button class="nav-button" type="button" data-view="favorites"><span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></span><span>Favorites</span></button>
+      </nav>
+      <div class="side-bottom">
+        <p class="local-note">Favorites and history are saved in this browser.</p>
+      </div>
+    </aside>
+
+    <main class="main" id="mainContent">
+      <header class="topbar">
+        <span class="top-title">Your music space</span>
+        <div class="top-actions">
+          <label class="search-box"><span aria-hidden="true">⌕</span><span class="visually-hidden">Search YouTube Music</span><input id="globalSearch" type="search" placeholder="Search YouTube"></label>
+          <div class="avatar" aria-label="Peakx">PX</div>
+        </div>
+      </header>
+      <section class="youtube-panel" id="youtubePanel" aria-label="Now playing on YouTube" hidden>
+        <div class="youtube-panel-head">
+          <div class="youtube-panel-title"><strong id="nowVideoTitle">YouTube</strong><span id="nowVideoArtist">Official YouTube player</span></div>
+        </div>
+        <div class="youtube-frame-wrap"><div id="youtubePlayer"></div></div>
+        <div class="youtube-panel-footer" id="youtubeFooter">Playback uses YouTube’s official player controls.</div>
+      </section>
+
+      <section class="view" id="view-home" aria-label="Home">
+        <div class="hero">
+          <div class="hero-copy">
+            <div class="eyebrow">Your music, your moment</div>
+            <h1>Feel the rhythm<br>again.</h1>
+            <p>Search YouTube for songs and music videos. Find your next favorite and play it in the official YouTube player.</p>
+            <div class="hero-actions">
+              <button class="primary-button" type="button" data-go="search">⌕ Find music</button>
+            </div>
+          </div>
+          <div class="hero-mark" aria-hidden="true"><div class="hero-disc"><span>♪</span></div></div>
+        </div>
+        <section class="section">
+          <div class="section-head"><div><h2>Recently played</h2><p>Pick up where you left off</p></div><button class="subtle-action" type="button" data-go="search">Find more →</button></div>
+          <div class="track-grid" id="recentGrid"><div class="empty-state"><strong>No videos played yet</strong><span>Music videos you play will show up here.</span></div></div>
+        </section>
+        <section class="section">
+          <div class="section-head"><div><h2>Recommended for you</h2><p id="recommendationHint">Your recent searches will appear here</p></div></div>
+          <div class="track-grid" id="recommendedGrid"><div class="empty-state"><strong>Your next favorite song</strong><span>Search for music to see related videos here.</span></div></div>
+        </section>
+      </section>
+
+      <section class="view active" id="view-search" aria-label="Search songs">
+        <div class="page-heading"><h1>Search</h1><p>Find songs, artists, and music videos on YouTube.</p></div>
+        <label class="search-large"><span aria-hidden="true">⌕</span><span class="visually-hidden">Search YouTube music</span><input id="pageSearch" type="search" placeholder="What do you want to listen to?"></label>
+        <div class="section-head"><div><h2 id="searchResultTitle">YouTube results</h2><p id="searchResultHint">Type a song, artist, or album</p></div></div>
+        <div class="track-grid" id="searchGrid"><div class="empty-state"><strong>Find your music</strong><span>Search for a song. Videos play on YouTube.</span></div></div>
+      </section>
+
+      <section class="view" id="view-favorites" aria-label="Favorite videos">
+        <div class="page-heading"><h1>Favorites</h1><p>Videos you saved with the star.</p></div>
+        <div class="track-grid" id="favoritesGrid"><div class="empty-state"><strong>No favorites yet</strong><span>Press the star on a result to save it here.</span></div></div>
+      </section>
+
+    </main>
+  </div>
+
+  <div class="player" aria-label="Music player">
+    <div class="now-playing">
+      <div class="mini-art" id="miniArt" aria-hidden="true">♪</div>
+      <div class="now-info"><div class="now-title" id="nowTitle">Choose a video</div><div class="now-artist" id="nowArtist">Search YouTube for music</div></div>
+      <button class="star-button" id="playerFavorite" type="button" aria-label="Add to favorites" title="Add to favorites" disabled="">
+        <svg class="star-outline" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        <svg class="star-filled" width="17" height="17" viewBox="0 0 24 24" fill="currentColor" style="display:none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+      </button>
+    </div>
+    <div class="player-center">
+      <div class="controls">
+        <button class="control-button" id="previous" type="button" aria-label="Previous video" title="Previous video" disabled="">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+        </button>
+        <button class="control-button main-control" id="playPauseBtn" type="button" aria-label="Play video" title="Play video" disabled="">
+          <svg class="play-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          <svg class="pause-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+        </button>
+        <button class="control-button" id="next" type="button" aria-label="Next video" title="Next video" disabled="">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+        </button>
+      </div>
+      <div class="timeline">
+        <span id="currentTime">0:00</span>
+        <input type="range" id="seek" value="0" min="0" max="100" disabled>
+        <span id="duration">0:00</span>
+      </div>
+      <div class="volume-control">
+        <span class="volume-icon" id="volumeIcon" aria-hidden="true">
+          <svg class="volume-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5Z"></path><path d="m17 9 4 6m0-6-4 6"></path></svg>
+          <svg class="volume-low" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5Z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path></svg>
+          <svg class="volume-high active" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5Z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a10 10 0 0 1 0 14"></path></svg>
+        </span>
+        <input type="range" class="volume-slider" id="volumeSlider" value="100" min="0" max="100">
+      </div>
+      <div class="playback-status" id="playbackStatus">Ready</div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+    (() => {
+      "use strict";
+
+      const storageKeys = { favorites: "peakx-youtube-favorites", recent: "peakx-youtube-recent" };
+      const API_KEY = "AIzaSyCkAhAX1EcHin6_g9XMVX0gVuFY5uLLZ0Y";
+      const SEARCH_ENDPOINT = "https://www.googleapis.com/youtube/v3/search";
+      const palettes = [
+        ["#626448", "#20231d"], ["#41586b", "#171d28"], ["#714957", "#261923"],
+        ["#66533b", "#201b17"], ["#4a5b4e", "#17201e"], ["#665a78", "#201b2b"]
+      ];
+      const state = {
+        tracks: [],
+        recommendations: [],
+        favorites: new Map(),
+        recent: [],
+        currentId: null,
+        queue: [],
+        search: "",
+        searchError: "",
+        loading: false,
+        searchTimer: null,
+        searchToken: 0,
+        toastTimer: null,
+        ytPlayer: null,
+        ytPlayerReady: false,
+        isPlaying: false,
+        isLoading: false,
+        isPaused: false,
+        timeUpdateInterval: null
+      };
+
+      function onYouTubeIframeAPIReady() {
+        if (!state.currentId || document.getElementById("youtubePanel").hidden || state.ytPlayer) return;
+        const track = trackById(state.currentId);
+        if (!track) return;
+        state.ytPlayer = new YT.Player("youtubePlayer", {
+          height: "100%",
+          width: "100%",
+          videoId: track.id,
+          playerVars: {
+            autoplay: 1,
+            controls: 0,
+            rel: 0,
+            playsinline: 1,
+            modestbranding: 1,
+            showinfo: 0
+          },
+          events: {
+            onReady: event => {
+              state.ytPlayerReady = true;
+              const savedVolume = safeRead("peakx-volume", 100);
+              const volume = Math.max(0, Math.min(100, Number(savedVolume) || 0));
+              event.target.setVolume(volume);
+              document.getElementById("volumeSlider").value = volume;
+              updateVolumeIcon(volume);
+              const selectedTrack = trackById(state.currentId);
+              if (selectedTrack) {
+                event.target.loadVideoById(selectedTrack.id);
+                event.target.playVideo();
+              }
+            },
+            onError: (event) => {
+              const errorMap = {
+                2: "Invalid parameter",
+                5: "HTML5 player error",
+                100: "Video not found",
+                101: "Video cannot be embedded",
+                150: "Video cannot be embedded"
+              };
+              const errorMessage = errorMap[event.data] || "Playback error";
+              state.isPlaying = false;
+              state.isLoading = false;
+              state.isPaused = false;
+              clearInterval(state.timeUpdateInterval);
+              updatePlayer();
+              console.error("YouTube player error:", event.data);
+              if (state.queue.length > 1) {
+                showToast(`Error: ${errorMessage}. Trying next video...`);
+                setTimeout(() => playRelative(1), 2000);
+              } else {
+                showToast(`Error: ${errorMessage}. Try another video.`);
+              }
+            },
+            onStateChange: (event) => {
+              if (event.data === YT.PlayerState.PLAYING) {
+                state.isPlaying = true;
+                state.isLoading = false;
+                state.isPaused = false;
+                clearInterval(state.timeUpdateInterval);
+                state.timeUpdateInterval = setInterval(updateTimeDisplay, 500);
+              } else if (event.data === YT.PlayerState.PAUSED) {
+                state.isPlaying = false;
+                state.isLoading = false;
+                state.isPaused = true;
+                clearInterval(state.timeUpdateInterval);
+              } else if (event.data === YT.PlayerState.ENDED) {
+                state.isPlaying = false;
+                state.isLoading = false;
+                state.isPaused = false;
+                clearInterval(state.timeUpdateInterval);
+                playRelative(1);
+              } else if (event.data === YT.PlayerState.BUFFERING) {
+                state.isLoading = true;
+              } else if (event.data === YT.PlayerState.CUED) {
+                state.isLoading = false;
+                state.isPaused = false;
+              }
+              updatePlayer();
+            }
+          }
+        });
+      }
+      window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+
+      function safeRead(key, fallback) {
+        try {
+          const value = localStorage.getItem(key);
+          return value ? JSON.parse(value) : fallback;
+        } catch (error) {
+          console.error(`Could not read "${key}" from local storage.`, error);
+          showToast("Some saved preferences could not be read. Check browser storage.");
+          return fallback;
+        }
+      }
+
+      function safeWrite(key, value) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+          console.error(`Could not save "${key}" to local storage.`, error);
+          showToast("This preference could not be saved. Browser storage may be full or blocked.");
+        }
+      }
+
+      function showToast(message) {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.classList.add("visible");
+        window.clearTimeout(state.toastTimer);
+        state.toastTimer = window.setTimeout(() => toast.classList.remove("visible"), 4200);
+      }
+
+      function persistPreferences() {
+        safeWrite(storageKeys.favorites, [...state.favorites.values()]);
+        safeWrite(storageKeys.recent, state.recent);
+        if (state.ytPlayer && state.ytPlayerReady) {
+          safeWrite("peakx-volume", state.ytPlayer.getVolume());
+        }
+      }
+
+      function trackById(id) {
+        return state.tracks.find(track => track.id === id)
+          || state.recent.find(track => track.id === id)
+          || state.favorites.get(id)
+          || state.recommendations.find(track => track.id === id);
+      }
+
+      function buildRecommendations(tracks) {
+        const seen = new Set();
+        const candidates = tracks.filter(track => {
+          const identity = track.title
+            .toLowerCase()
+            .replace(/\([^)]*(official|lyrics|audio|video|visualizer)[^)]*\)/gi, "")
+            .replace(/\b(official music video|official video|official audio|lyrics|lyric video|music video|visualizer|audio)\b/gi, "")
+            .replace(/[^\p{L}\p{N}]+/gu, " ")
+            .trim();
+          if (!identity || seen.has(identity)) return false;
+          seen.add(identity);
+          return true;
+        });
+        for (let index = candidates.length - 1; index > 0; index--) {
+          const swapIndex = Math.floor(Math.random() * (index + 1));
+          [candidates[index], candidates[swapIndex]] = [candidates[swapIndex], candidates[index]];
+        }
+        return candidates;
+      }
+
+      function getPalette(track) {
+        const index = Math.abs([...track.id].reduce((sum, char) => sum + char.charCodeAt(0), 0)) % palettes.length;
+        return palettes[index];
+      }
+
+      function makeCard(track) {
+        const [colorA, colorB] = getPalette(track);
+        const card = document.createElement("article");
+        card.className = "track-card";
+        const artwork = document.createElement("div");
+        artwork.className = "artwork";
+        artwork.style.setProperty("--art-a", colorA);
+        artwork.style.setProperty("--art-b", colorB);
+        if (track.thumbnail) {
+          const image = document.createElement("img");
+          image.src = track.thumbnail;
+          image.alt = "";
+          image.loading = "lazy";
+          image.referrerPolicy = "strict-origin-when-cross-origin";
+          image.addEventListener("error", () => image.remove(), { once: true });
+          artwork.append(image);
+        }
+        const glyph = document.createElement("span");
+        glyph.className = "art-glyph";
+        glyph.textContent = "♪";
+        artwork.append(glyph);
+        const play = document.createElement("button");
+        play.type = "button";
+        play.className = "card-play";
+        play.setAttribute("aria-label", `Play ${track.title} on YouTube`);
+        play.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+        play.addEventListener("click", () => playTrack(track.id));
+        artwork.append(play);
+
+        const meta = document.createElement("div");
+        meta.className = "track-meta";
+        const text = document.createElement("div");
+        text.className = "track-text";
+        const title = document.createElement("div");
+        title.className = "track-title";
+        title.textContent = track.title;
+        title.title = track.title;
+        const artist = document.createElement("div");
+        artist.className = "track-artist";
+        artist.textContent = track.artist;
+        text.append(title, artist);
+
+        const star = document.createElement("button");
+        star.type = "button";
+        star.className = `star-button${state.favorites.has(track.id) ? " favorited" : ""}`;
+        const isFav = state.favorites.has(track.id);
+        star.innerHTML = isFav
+          ? '<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>'
+          : '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
+        star.setAttribute("aria-label", isFav ? "Remove from favorites" : "Add to favorites");
+        star.title = star.getAttribute("aria-label");
+        star.addEventListener("click", () => toggleFavorite(track.id));
+        meta.append(text, star);
+        card.append(artwork, meta);
+        return card;
+      }
+
+      function showEmpty(container, title, message) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        const heading = document.createElement("strong");
+        heading.textContent = title;
+        const body = document.createElement("span");
+        body.textContent = message;
+        empty.append(heading, body);
+        container.append(empty);
+      }
+
+      function renderGrid(elementId, tracks, emptyTitle, emptyMessage) {
+        const container = document.getElementById(elementId);
+        container.replaceChildren();
+        if (!tracks.length) {
+          showEmpty(container, emptyTitle, emptyMessage);
+          return;
+        }
+        tracks.forEach(track => container.append(makeCard(track)));
+      }
+
+      function render() {
+        const recentTracks = state.recent.slice(0, 6);
+        const favoriteTracks = [...state.favorites.values()];
+        const unavailableRecommendations = new Set([
+          ...state.recent.map(track => track.id),
+          ...state.favorites.keys(),
+          state.currentId
+        ]);
+        const recommendations = state.recommendations
+          .filter(track => !unavailableRecommendations.has(track.id))
+          .slice(0, 6);
+        document.getElementById("recommendationHint").textContent = state.search
+          ? `More videos related to “${state.search}”`
+          : "Your recent searches will appear here";
+
+        renderGrid("recentGrid", recentTracks, "No videos played yet", "Music videos you play will show up here.");
+        renderGrid("recommendedGrid", recommendations, "Your next favorite song", "Search for music to see related videos.");
+        renderGrid("favoritesGrid", favoriteTracks, "No favorites yet", "Press the star on a result to save it here.");
+
+        document.getElementById("searchResultTitle").textContent = "YouTube results";
+        document.getElementById("searchResultHint").textContent = state.loading
+          ? "Searching music videos…"
+          : state.search
+            ? `${state.tracks.length} ${state.tracks.length === 1 ? "result" : "results"} for “${state.search}”`
+            : "Type a song, artist, or album";
+        if (state.loading) {
+          const grid = document.getElementById("searchGrid");
+          grid.replaceChildren();
+          showEmpty(grid, "Searching YouTube…", "Please wait while results load.");
+        } else if (state.searchError) {
+          renderGrid("searchGrid", [], "Search could not be completed", state.searchError);
+        } else if (state.search) {
+          renderGrid("searchGrid", state.tracks, "No results found", "Try another title or artist.");
+        } else {
+          renderGrid("searchGrid", [], "Find your music", "Type a song, artist, or album to search YouTube.");
+        }
+        updatePlayer();
+      }
+
+      function formatTime(seconds) {
+        if (!seconds || isNaN(seconds)) return "0:00";
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, "0")}`;
+      }
+
+      function updateTimeDisplay() {
+        if (!state.ytPlayer || !state.ytPlayerReady) return;
+        const currentTime = state.ytPlayer.getCurrentTime() || 0;
+        const duration = state.ytPlayer.getDuration() || 0;
+        document.getElementById("currentTime").textContent = formatTime(currentTime);
+        document.getElementById("duration").textContent = formatTime(duration);
+        const seekSlider = document.getElementById("seek");
+        if (duration > 0) {
+          seekSlider.value = (currentTime / duration) * 100;
+          seekSlider.disabled = false;
+        } else {
+          seekSlider.disabled = true;
+        }
+      }
+
+      function updateVolumeIcon(volume) {
+        const iconName = volume === 0 ? "muted" : volume < 50 ? "low" : "high";
+        document.querySelectorAll("#volumeIcon svg").forEach(icon => {
+          icon.classList.toggle("active", icon.classList.contains(`volume-${iconName}`));
+        });
+      }
+
+      function updatePlayer() {
+        const track = trackById(state.currentId);
+        const hasTrack = Boolean(track);
+        document.getElementById("nowTitle").textContent = track ? track.title : "Choose a video";
+        document.getElementById("nowArtist").textContent = track ? track.artist : "Search YouTube for music";
+        const miniArt = document.getElementById("miniArt");
+        miniArt.replaceChildren();
+        if (track && track.thumbnail) {
+          const image = document.createElement("img");
+          image.src = track.thumbnail;
+          image.alt = "";
+          image.referrerPolicy = "strict-origin-when-cross-origin";
+          image.addEventListener("error", () => image.remove(), { once: true });
+          miniArt.append(image);
+        } else miniArt.textContent = "♪";
+        const favorite = state.favorites.has(state.currentId);
+        const favoriteButton = document.getElementById("playerFavorite");
+        const starOutline = favoriteButton.querySelector(".star-outline");
+        const starFilled = favoriteButton.querySelector(".star-filled");
+        if (favorite) {
+          starOutline.style.display = "none";
+          starFilled.style.display = "block";
+        } else {
+          starOutline.style.display = "block";
+          starFilled.style.display = "none";
+        }
+        favoriteButton.classList.toggle("favorited", favorite);
+        favoriteButton.disabled = !hasTrack;
+        favoriteButton.setAttribute("aria-label", favorite ? "Remove from favorites" : "Add to favorites");
+        favoriteButton.title = favorite ? "Remove from favorites" : "Add to favorites";
+        for (const id of ["previous", "next", "playPauseBtn"]) document.getElementById(id).disabled = !hasTrack;
+        document.getElementById("playbackStatus").textContent = !hasTrack
+          ? "Ready"
+          : state.isLoading
+            ? "Loading"
+            : state.isPlaying
+              ? "Playing"
+                : state.isPaused
+                  ? "Paused"
+                  : "Ready";
+        const playPauseBtn = document.getElementById("playPauseBtn");
+        const playIcon = playPauseBtn.querySelector(".play-icon");
+        const pauseIcon = playPauseBtn.querySelector(".pause-icon");
+        if (state.isPlaying) {
+          playIcon.style.display = "none";
+          pauseIcon.style.display = "block";
+        } else {
+          playIcon.style.display = "block";
+          pauseIcon.style.display = "none";
+        }
+      }
+
+      function playTrack(id) {
+        const track = trackById(id);
+        if (!track) {
+          showToast("That video could not be found. Search YouTube again.");
+          return;
+        }
+        if (!/^[\w-]{11}$/.test(track.id)) {
+          showToast("YouTube returned an invalid video ID.");
+          return;
+        }
+        state.currentId = id;
+        if (!state.queue.includes(id)) state.queue = state.tracks.map(item => item.id);
+        const playerPanel = document.getElementById("youtubePanel");
+        playerPanel.hidden = false;
+        document.getElementById("nowVideoTitle").textContent = track.title;
+        document.getElementById("nowVideoArtist").textContent = track.artist;
+        document.getElementById("youtubeFooter").textContent = "Playback uses YouTube's official player controls.";
+
+        state.recent = [track, ...state.recent.filter(item => item.id !== id)].slice(0, 30);
+        document.body.classList.add("is-playing");
+        persistPreferences();
+        render();
+        document.getElementById("mainContent").scrollTo({ top: 0, behavior: "smooth" });
+
+        if (state.ytPlayerReady && state.ytPlayer) {
+          state.isLoading = true;
+          state.isPlaying = false;
+          state.isPaused = false;
+          state.ytPlayer.loadVideoById(track.id);
+        } else {
+          state.isLoading = true;
+          state.isPlaying = false;
+          state.isPaused = false;
+          if (typeof YT !== "undefined" && YT.Player) onYouTubeIframeAPIReady();
+        }
+        render();
+      }
+
+      function playRelative(direction) {
+        if (!state.queue.length) return;
+        const currentIndex = state.queue.indexOf(state.currentId);
+        const start = currentIndex < 0 ? (direction > 0 ? -1 : 0) : currentIndex;
+        const nextIndex = (start + direction + state.queue.length) % state.queue.length;
+        playTrack(state.queue[nextIndex]);
+      }
+
+      function toggleFavorite(id) {
+        if (!id) return;
+        const track = trackById(id);
+        if (state.favorites.has(id)) state.favorites.delete(id);
+        else if (track) state.favorites.set(id, track);
+        persistPreferences();
+        render();
+      }
+
+      function setView(name) {
+        document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view.id === `view-${name}`));
+        document.querySelectorAll(".nav-button").forEach(button => button.classList.toggle("active", button.dataset.view === name));
+        document.getElementById("mainContent").scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function normalizeVideo(item) {
+        const snippet = item.snippet;
+        const videoId = item.id.videoId;
+        const thumbnail = snippet.thumbnails?.high?.url
+          || snippet.thumbnails?.medium?.url
+          || snippet.thumbnails?.default?.url
+          || "";
+        return {
+          id: videoId,
+          title: snippet.title,
+          artist: snippet.channelTitle || "YouTube",
+          thumbnail
+        };
+      }
+
+      async function searchYoutube(query, token) {
+        const apiKey = API_KEY.trim();
+        if (!apiKey || apiKey === "PASTE_YOUR_RESTRICTED_API_KEY_HERE") {
+          state.loading = false;
+          state.searchError = "Add your restricted YouTube Data API v3 key to the API_KEY constant in the JavaScript.";
+          render();
+          return;
+        }
+        state.loading = true;
+        state.searchError = "";
+        render();
+        const url = new URL(SEARCH_ENDPOINT);
+        url.search = new URLSearchParams({
+          part: "snippet",
+          q: query,
+          type: "video",
+          videoCategoryId: "10",
+          videoEmbeddable: "true",
+          videoSyndicated: "true",
+          maxResults: "12",
+          safeSearch: "moderate",
+          key: apiKey
+        }).toString();
+        try {
+          const response = await fetch(url.toString(), { method: "GET", mode: "cors" });
+          const data = await response.json();
+          if (!response.ok || data.error) {
+            const apiMessage = data.error?.message || `The API returned HTTP ${response.status}.`;
+            throw new Error(apiMessage);
+          }
+          if (token !== state.searchToken) return;
+          state.tracks = (data.items || [])
+            .filter(item => item.id?.videoId && item.snippet?.title)
+            .map(normalizeVideo);
+          state.queue = state.tracks.map(track => track.id);
+          state.recommendations = buildRecommendations(state.tracks);
+          state.loading = false;
+          state.searchError = "";
+          render();
+        } catch (error) {
+          if (token !== state.searchToken) return;
+          console.error("YouTube Data API search failed.", error);
+          state.loading = false;
+          state.searchError = error.message || "Could not connect to YouTube Data API.";
+          render();
+        }
+      }
+
+      function scheduleSearch(query) {
+        state.search = query.trim();
+        state.searchError = "";
+        state.searchToken++;
+        const token = state.searchToken;
+        window.clearTimeout(state.searchTimer);
+        if (!state.search) {
+          state.tracks = [];
+          state.queue = [];
+          state.loading = false;
+          render();
+          return;
+        }
+        state.loading = true;
+        render();
+        state.searchTimer = window.setTimeout(() => searchYoutube(state.search, token), 650);
+      }
+
+      document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => setView(button.dataset.view)));
+      document.querySelectorAll("[data-go]").forEach(button => button.addEventListener("click", () => setView(button.dataset.go)));
+      document.getElementById("globalSearch").addEventListener("input", event => {
+        const query = event.target.value;
+        document.getElementById("pageSearch").value = query;
+        setView("search");
+        scheduleSearch(query);
+      });
+      document.getElementById("pageSearch").addEventListener("input", event => {
+        const query = event.target.value;
+        document.getElementById("globalSearch").value = query;
+        scheduleSearch(query);
+      });
+      document.getElementById("playPauseBtn").addEventListener("click", () => {
+        if (!state.ytPlayer || !state.ytPlayerReady) return;
+        if (state.isPlaying) {
+          state.ytPlayer.pauseVideo();
+          state.isPlaying = false;
+          state.isLoading = false;
+          state.isPaused = true;
+        } else {
+          state.isLoading = true;
+          state.isPlaying = false;
+          state.isPaused = false;
+          updatePlayer();
+          state.ytPlayer.playVideo();
+          return;
+        }
+        updatePlayer();
+      });
+      document.getElementById("next").addEventListener("click", () => playRelative(1));
+      document.getElementById("previous").addEventListener("click", () => playRelative(-1));
+      document.getElementById("playerFavorite").addEventListener("click", () => toggleFavorite(state.currentId));
+      document.getElementById("seek").addEventListener("input", (event) => {
+        if (!state.ytPlayer || !state.ytPlayerReady) return;
+        const duration = state.ytPlayer.getDuration();
+        if (duration > 0) {
+          const seekTo = (event.target.value / 100) * duration;
+          state.ytPlayer.seekTo(seekTo, true);
+        }
+      });
+      document.getElementById("volumeSlider").addEventListener("input", (event) => {
+        const volume = parseInt(event.target.value);
+        if (state.ytPlayer && state.ytPlayerReady) {
+          state.ytPlayer.setVolume(volume);
+        }
+        updateVolumeIcon(volume);
+      });
+      function loadPreferences() {
+        const favorites = safeRead(storageKeys.favorites, []);
+        const recent = safeRead(storageKeys.recent, []);
+        state.favorites = new Map(favorites.filter(track => track && typeof track.id === "string").map(track => [track.id, track]));
+        state.recent = recent.filter(track => track && typeof track.id === "string").slice(0, 30);
+        render();
+      }
+
+      function initSnow() {
+        const canvas = document.getElementById("snow");
+        const context = canvas.getContext("2d");
+        if (!context || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        let width = 0;
+        let height = 0;
+        let flakes = [];
+        function resize() {
+          const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
+          width = window.innerWidth;
+          height = window.innerHeight;
+          canvas.width = Math.round(width * ratio);
+          canvas.height = Math.round(height * ratio);
+          context.setTransform(ratio, 0, 0, ratio, 0, 0);
+          flakes = Array.from({ length: Math.min(115, Math.round(width / 10)) }, () => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            radius: Math.random() * 1.8 + .45,
+            speed: Math.random() * .75 + .28,
+            drift: (Math.random() - .5) * .42,
+            alpha: Math.random() * .55 + .2
+          }));
+        }
+        function draw() {
+          context.clearRect(0, 0, width, height);
+          for (const flake of flakes) {
+            context.beginPath();
+            context.arc(flake.x, flake.y, flake.radius, 0, Math.PI * 2);
+            context.fillStyle = `rgba(255,255,255,${flake.alpha})`;
+            context.fill();
+            flake.y += flake.speed;
+            flake.x += flake.drift;
+            if (flake.y > height + 3) { flake.y = -4; flake.x = Math.random() * width; }
+            if (flake.x < -4) flake.x = width + 4;
+            if (flake.x > width + 4) flake.x = -4;
+          }
+          requestAnimationFrame(draw);
+        }
+        resize();
+        window.addEventListener("resize", resize);
+        requestAnimationFrame(draw);
+      }
+
+      initSnow();
+      loadPreferences();
+    })();
+  </script>
+
+
+</body></html>
